@@ -41,8 +41,19 @@ public class CreateMarketOrder {
     private final String mUsername;
     private final Order order;
     private final List<String> reports;
-    private final PrintStream out;
-    private final List<String> result;
+    private static String outputFile = "output/javaapi/execution_report_market_order.txt";
+    private static FileOutputStream outputStream;
+
+    static {
+        try {
+            outputStream = new FileOutputStream(outputFile);
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static PrintStream out = new PrintStream(outputStream);
+    private static List<String> result = new ArrayList<>();
 
 
     public CreateMarketOrder(String[] aArgs) throws FileNotFoundException {
@@ -52,10 +63,6 @@ public class CreateMarketOrder {
         mServer = aArgs[3];
         order = getOrder(Arrays.stream(aArgs).skip(4).toArray(String[]::new));
         reports = new ArrayList<>();
-        String outputFile = "output/javaapi/execution_report_market_order.txt";
-        FileOutputStream outputStream = new FileOutputStream(outputFile);
-        out = new PrintStream(outputStream);
-        result = new ArrayList<>();
     }
 
     private boolean doResult(final MessageTestHandler aMessageTestHandler) {
@@ -87,6 +94,7 @@ public class CreateMarketOrder {
             result.add(executionReport[14]);
             result.add(executionReport[20]);
             result.forEach(out::println);
+            result.clear();
         } else {
             String[] executionReport = reports.get(2).split("\\{")[1].split(", ");
             result.add(executionReport[1]);
@@ -100,7 +108,7 @@ public class CreateMarketOrder {
             result.add(executionReport[22]);
             result.add(executionReport[24]);
             result.forEach(out::println);
-
+            result.clear();
         }
         mFxcmGateway.logout();
         return aMessageTestHandler.isSuccess();
@@ -127,8 +135,10 @@ public class CreateMarketOrder {
     }
 
     private static void runTest(String[] aArgs) throws FileNotFoundException {
+        result.add(aArgs[4]);
         CreateMarketOrder createMarketOrder = new CreateMarketOrder(aArgs);
         createMarketOrder.testCreateTrueMarketOrder();
+        result.add("\n");
     }
 
     public static boolean safeEquals(String aString1, String aString2) {
@@ -275,7 +285,11 @@ public class CreateMarketOrder {
             return;
         }
 
-        runTest(aArgs);
+        String[] instruments = aArgs[4].split(", ");
+        for (String instr : instruments) {
+            aArgs[4] = instr;
+            runTest(aArgs);
+        }
     }
 
     public static void main(String[] aArgs) throws FileNotFoundException {

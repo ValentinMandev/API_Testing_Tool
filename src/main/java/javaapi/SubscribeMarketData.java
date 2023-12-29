@@ -20,8 +20,10 @@ import com.fxcm.util.Util;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 public class SubscribeMarketData {
@@ -32,7 +34,7 @@ public class SubscribeMarketData {
     private final String mStation;
     private IStatusMessageListener mStatusListener;
     private final String mUsername;
-    private final String mSymbol;
+    private final List<String> mSymbol;
     private final PrintStream out;
 
     public SubscribeMarketData(String aUsername, String aPassword, String aStation, String aServer, String aSymbol) throws FileNotFoundException {
@@ -40,7 +42,7 @@ public class SubscribeMarketData {
         mUsername = aUsername;
         mPassword = aPassword;
         mStation = aStation;
-        mSymbol = aSymbol;
+        mSymbol = Arrays.stream(aSymbol.split(", ")).collect(Collectors.toList());
         String outputFile = "output/javaapi/subscribe_market_data.txt";
         FileOutputStream outputStream = new FileOutputStream(outputFile);
         out = new PrintStream(outputStream);
@@ -137,7 +139,7 @@ public class SubscribeMarketData {
                     Enumeration securities = aTradingSessionStatus.getSecurities();
                     while (securities.hasMoreElements()) {
                         TradingSecurity o = (TradingSecurity) securities.nextElement();
-                        if (mSymbol.equals(o.getSymbol())) {
+                        if (mSymbol.contains(o.getSymbol())) {
                             mdr.addRelatedSymbol(o);
                         }
 
@@ -153,7 +155,7 @@ public class SubscribeMarketData {
             public void process(MarketDataSnapshot aMarketDataSnapshot) throws NotDefinedException {
                 super.process(aMarketDataSnapshot);
                 if (safeEquals(aMarketDataSnapshot.getRequestID(), mMarketDataRequestID) &&
-                        safeEquals(aMarketDataSnapshot.getInstrument().getSymbol(), mSymbol)) {
+                        mSymbol.contains(aMarketDataSnapshot.getInstrument().getSymbol())) {
                     if (aMarketDataSnapshot.getFXCMContinuousFlag() == IFixDefs.FXCMCONTINUOUS_END) {
                         setSuccess(true);
                     }
@@ -205,7 +207,7 @@ public class SubscribeMarketData {
 
 
         public void process(MarketDataSnapshot aMarketDataSnapshot) throws NotDefinedException {
-            if (safeEquals(aMarketDataSnapshot.getInstrument().getSymbol(), mSymbol)) {
+            if (mSymbol.contains(aMarketDataSnapshot.getInstrument().getSymbol())) {
 //                System.out.println("client inc: aMarketDataSnapshot = " + aMarketDataSnapshot);
                 out.println(
                         "Instrument: " + aMarketDataSnapshot.getInstrument().getSymbol()

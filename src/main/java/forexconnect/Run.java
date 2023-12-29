@@ -6,21 +6,19 @@ import forexconnect.createMarketOrder.CreateMarketOrder;
 
 public class Run {
 
-    public static void main(String[] args) {
+    public static void main(String username, String password, String connection, String instruments, String dateFrom, String dateTo, String timeframe) {
 
-//        GetHistoryData.run(new String[]{"ValioDemo", "1234", "https://fxcorporate.com/Hosts.jsp", "Demo", "EUR/USD", "D1", "20231013 00:00:00", "20231218 00:00:00", "10"});
-//        GetHistoryData.run(new String[]{"ValioDemo", "1234", "https://fxcorporate.com/Hosts.jsp", "Demo", "EUR/USD", "D1", "20231013 00:00:00", "20231218 00:00:00"});
-        GetHistoryData.run(new String[]{"ValioDemo", "1234", "https://fxcorporate.com/Hosts.jsp", "Demo", "EUR/USD", "D1", "10"});
+        GetHistoryData.run(new String[]{username, password, "https://fxcorporate.com/Hosts.jsp", connection, instruments, timeframe, dateFrom, dateTo});
 
-        SubscribeMarketData.run(new String[]{"ValioDemo", "1234", "https://fxcorporate.com/Hosts.jsp", "Demo", "USD/JPY"});
+        SubscribeMarketData.run(new String[]{username, password, "https://fxcorporate.com/Hosts.jsp", connection, instruments});
 
-        CreateMarketOrder.run(new String[]{"ValioDemo", "1234", "https://fxcorporate.com/Hosts.jsp", "Demo", "USD/JPY", "B", "4"});
+        CreateMarketOrder.run(new String[]{username, password, "https://fxcorporate.com/Hosts.jsp", connection, instruments, "B", "1"});
 
         // Stop entry:
-        CreateEntryOrder.run(new String[]{"ValioDemo", "1234", "https://fxcorporate.com/Hosts.jsp", "Demo", "EUR/GBP", "S", "2", "stop"});
+        CreateEntryOrder.run(new String[]{username, password, "https://fxcorporate.com/Hosts.jsp", connection, instruments, "S", "1", "stop"});
 
         // Limit entry:
-        CreateEntryOrder.run(new String[]{"ValioDemo", "1234", "https://fxcorporate.com/Hosts.jsp", "Demo", "USD/JPY", "B", "3", "limit"});
+        CreateEntryOrder.run(new String[]{username, password, "https://fxcorporate.com/Hosts.jsp", connection, instruments, "B", "1", "limit"});
     }
 }
 

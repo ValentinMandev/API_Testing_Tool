@@ -13,6 +13,7 @@ import javaapi.enums.Timeframes;
 import java.io.*;
 import java.util.Enumeration;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 public class HistData
@@ -41,32 +42,32 @@ public class HistData
 
     private static final PrintStream out = new PrintStream(outputStream);
 
-
     private static class Request {
         final String username;
         final String password;
         final String terminal;
         final String server;
-        final String symbol;
+        String symbol;
+        final String[] instruments;
         final String timeframe;
         final String startDate;
         final String startTime;
         final String endDate;
         final String endTime;
 
-
         Request(String[] aArgs) throws FileNotFoundException {
             this.username = aArgs[0];
             this.password = aArgs[1];
             this.terminal = aArgs[2];
             this.server = aArgs[3];
-            this.symbol = aArgs[4];
+            this.instruments = aArgs[4].split(", ");
+            this.symbol = "";
             this.timeframe = aArgs[5];
 //            this.startDate = String.valueOf(Integer.parseInt(aArgs[6]) - 1);
-            this.startDate = aArgs[6];
-            this.startTime = aArgs[7];
-            this.endDate = aArgs[8];
-            this.endTime = aArgs[9];
+            this.startDate = aArgs[6].split(" ")[0];
+            this.startTime = aArgs[6].split(" ")[1];
+            this.endDate = aArgs[7].split(" ")[0];
+            this.endTime = aArgs[7].split(" ")[1];
         }
     }
 
@@ -76,6 +77,16 @@ public class HistData
 
         request = new Request(args);
 
+        for (String instr : request.instruments) {
+            request.symbol = instr;
+            result.add(instr);
+            result.addAll(getData());
+        }
+
+        result.forEach(out::println);
+    }
+
+    private static Set<String> getData() {
         final IGateway fxcmGateway = GatewayFactory.createGateway();
         fxcmGateway.registerGenericMessageListener(aMessage -> {
             if (aMessage instanceof MarketDataSnapshot)
@@ -182,13 +193,20 @@ public class HistData
             Thread.sleep(500);
 
             fxcmGateway.logout();
-            result.forEach(out::println);
+//            result.forEach(out::println);
 //            result.forEach(System.out::println);
 //            System.exit(0);
 
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        try {
+            Thread.sleep(3000);
+        } catch (Exception e) {
+
+        }
+        return result;
     }
 
     static private int GetHistory1(String symbol, IGateway fxcmGateway)

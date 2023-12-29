@@ -30,9 +30,10 @@ public class ResponseListener implements IO2GResponseListener {
         out = new PrintStream(outputStream);
     }
 
-    public void setRequestID(String sRequestID) {
+    public void setRequestID(String sRequestID, String instrument) {
         mResponse = null;
         mRequestID = sRequestID;
+        out.println(instrument + ":");
     }
 
     public boolean waitEvents() throws Exception {
@@ -69,14 +70,15 @@ public class ResponseListener implements IO2GResponseListener {
                 case ACCOUNTS:
                     O2GAccountRow account = reader.getAccountRow(ii);
                     // Show balance updates
-                    out.println(String.format("Balance: %.2f", account.getBalance()));
+//                    out.println(String.format("Balance: %.2f", account.getBalance()));
+                    out.println();
                     break;
                 case ORDERS:
                     O2GOrderRow order = reader.getOrderRow(ii);
                     switch (reader.getUpdateType(ii)) {
                     case INSERT:
                         if ((OrderMonitor.isClosingOrder(order) || OrderMonitor.isOpeningOrder(order))
-                                && mOrderMonitor == null) {
+                                ) {
                             out.println(String.format("The order has been added. Order ID: %s, Rate: %s, Time In Force: %s",
                                     order.getOrderID(),
                                     order.getRate(),
@@ -199,6 +201,7 @@ public class ResponseListener implements IO2GResponseListener {
         for (int i = 0; i < trades.size(); i++) {
             O2GTradeRow trade = trades.get(i);
             String sTradeID = trade.getTradeID();
+            String iSymbol;
             int iAmount = trade.getAmount();
             double dRate = trade.getOpenRate();
             out.println(String.format(

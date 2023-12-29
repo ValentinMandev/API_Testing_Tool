@@ -1,7 +1,7 @@
 package forexconnect.createMarketOrder;
 
 import com.fxcore2.*;
-import common.LoginParams;
+import forexconnect.common.LoginParams;
 
 public class CreateMarketOrder {
 
@@ -30,46 +30,51 @@ public class CreateMarketOrder {
                 ResponseListener responseListener = new ResponseListener(session);
                 session.subscribeResponse(responseListener);
 
-                O2GAccountRow account = getAccount(session, sampleParams.getAccountID());
-                if (account == null) {
-                    if (sampleParams.getAccountID().isEmpty()) {
-                        throw new Exception("No valid accounts");
+                String[] instruments = sampleParams.getInstrument().split(", ");
+                for (String instr : instruments) {
+
+                    O2GAccountRow account = getAccount(session, sampleParams.getAccountID());
+                    if (account == null) {
+                        if (sampleParams.getAccountID().isEmpty()) {
+                            throw new Exception("No valid accounts");
+                        } else {
+                            throw new Exception(String.format("The account '%s' is not valid",
+                                    sampleParams.getAccountID()));
+                        }
                     } else {
-                        throw new Exception(String.format("The account '%s' is not valid",
-                                sampleParams.getAccountID()));
+                        if(!sampleParams.getAccountID().equals(account.getAccountID())) {
+                            sampleParams.setAccountID(account.getAccountID());
+                            System.out.println(String.format("AccountID='%s'",
+                                    sampleParams.getAccountID()));
+                        }
                     }
-                } else {
-                    if(!sampleParams.getAccountID().equals(account.getAccountID())) {
-                        sampleParams.setAccountID(account.getAccountID());
-                        System.out.println(String.format("AccountID='%s'",
-                                sampleParams.getAccountID()));
+
+                    O2GOfferRow offer = getOffer(session, instr);
+                    if (offer == null) {
+                        throw new Exception(String.format("The instrument '%s' is not valid",
+                                instr));
                     }
-                }
 
-                O2GOfferRow offer = getOffer(session, sampleParams.getInstrument());
-                if (offer == null) {
-                    throw new Exception(String.format("The instrument '%s' is not valid",
-                            sampleParams.getInstrument()));
-                }
+                    O2GLoginRules loginRules = session.getLoginRules();
+                    if (loginRules == null) {
+                        throw new Exception("Cannot get login rules");
+                    }
+                    O2GTradingSettingsProvider tradingSettingsProvider = loginRules.getTradingSettingsProvider();
+                    int iBaseUnitSize = tradingSettingsProvider.getBaseUnitSize(instr, account);
+                    int iAmount = iBaseUnitSize * sampleParams.getLots();
 
-                O2GLoginRules loginRules = session.getLoginRules();
-                if (loginRules == null) {
-                    throw new Exception("Cannot get login rules");
-                }
-                O2GTradingSettingsProvider tradingSettingsProvider = loginRules.getTradingSettingsProvider();
-                int iBaseUnitSize = tradingSettingsProvider.getBaseUnitSize(sampleParams.getInstrument(), account);
-                int iAmount = iBaseUnitSize * sampleParams.getLots();
-
-                O2GRequest request = createTrueMarketOrderRequest(session,
-                        offer.getOfferID(), sampleParams.getAccountID(), iAmount,
-                        sampleParams.getBuySell());
-                if (request == null) {
-                    throw new Exception("Cannot create request");
-                }
-                responseListener.setRequestID(request.getRequestId());
-                session.sendRequest(request);
-                if (responseListener.waitEvents()) {
+                    O2GRequest request = createTrueMarketOrderRequest(session,
+                            offer.getOfferID(), sampleParams.getAccountID(), iAmount,
+                            sampleParams.getBuySell());
+                    if (request == null) {
+                        throw new Exception("Cannot create request");
+                    }
+                    responseListener.setRequestID(request.getRequestId(), instr);
+                    session.sendRequest(request);
                     Thread.sleep(1000); // Wait for the balance update
+                }
+
+                if (responseListener.waitEvents()) {
                     System.out.println("Done!");
                 } else {
                     throw new Exception("Response waiting timeout expired");

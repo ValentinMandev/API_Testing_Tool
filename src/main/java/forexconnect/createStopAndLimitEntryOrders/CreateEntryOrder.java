@@ -1,7 +1,7 @@
 package forexconnect.createStopAndLimitEntryOrders;
 
 import com.fxcore2.*;
-import common.LoginParams;
+import forexconnect.common.LoginParams;
 
 public class CreateEntryOrder {
     public static void run(String[] args) {
@@ -26,47 +26,54 @@ public class CreateEntryOrder {
                 ResponseListener responseListener = new ResponseListener(session, sampleParams.isStop());
                 session.subscribeResponse(responseListener);
 
-                O2GAccountRow account = getAccount(session, sampleParams.getAccountID());
-                if (account == null) {
-                    if (sampleParams.getAccountID().isEmpty()) {
-                        throw new Exception("No valid accounts");
+                String[] instruments = sampleParams.getInstrument().split(", ");
+                for (String instr : instruments) {
+                    O2GAccountRow account = getAccount(session, sampleParams.getAccountID());
+                    if (account == null) {
+                        if (sampleParams.getAccountID().isEmpty()) {
+                            throw new Exception("No valid accounts");
+                        } else {
+                            throw new Exception(String.format("The account '%s' is not valid", sampleParams.getAccountID()));
+                        }
                     } else {
-                        throw new Exception(String.format("The account '%s' is not valid", sampleParams.getAccountID()));
+                        if(!sampleParams.getAccountID().equals(account.getAccountID())) {
+                            sampleParams.setAccountID(account.getAccountID());
+                            System.out.println(String.format("AccountID='%s'",
+                                    sampleParams.getAccountID()));
+                        }
                     }
-                } else {
-                    if(!sampleParams.getAccountID().equals(account.getAccountID())) {
-                        sampleParams.setAccountID(account.getAccountID());
-                        System.out.println(String.format("AccountID='%s'",
-                                sampleParams.getAccountID()));
+
+                    O2GOfferRow offer = getOffer(session, instr);
+                    if (offer == null) {
+                        throw new Exception(String.format("The instrument '%s' is not valid", instr));
                     }
+
+                    O2GLoginRules loginRules = session.getLoginRules();
+                    if (loginRules == null) {
+                        throw new Exception("Cannot get login rules");
+                    }
+                    O2GTradingSettingsProvider tradingSettingsProvider = loginRules.getTradingSettingsProvider();
+                    int iBaseUnitSize = tradingSettingsProvider.getBaseUnitSize(instr, account);
+                    int iAmount = iBaseUnitSize * sampleParams.getLots();
+                    int iCondDistEntryLimit = tradingSettingsProvider.getCondDistEntryLimit(instr);
+                    int iCondDistEntryStop = tradingSettingsProvider.getCondDistEntryStop(instr);
+
+                    double rate = (sampleParams.isStop() && sampleParams.getBuySell().equals("B")) ||
+                            (!sampleParams.isStop() && sampleParams.getBuySell().equals("S"))
+                            ? offer.getAsk() + offer.getAsk() * 0.01
+                            : offer.getAsk() - offer.getAsk() * 0.01;
+                    String sOrderType = getEntryOrderType(offer.getBid(), offer.getAsk(), rate, sampleParams.getBuySell(), offer.getPointSize(), iCondDistEntryLimit, iCondDistEntryStop);
+                    O2GRequest request = createEntryOrderRequest(session, offer.getOfferID(), sampleParams.getAccountID(), iAmount, rate, sampleParams.getBuySell(), sOrderType, sampleParams.getExpireDate());
+                    if (request == null) {
+                        throw new Exception("Cannot create request; probably some arguments are missing or incorrect");
+                    }
+                    responseListener.setRequestID(request.getRequestId(), instr);
+                    session.sendRequest(request);
+
+                    Thread.sleep(1000);
                 }
 
-                O2GOfferRow offer = getOffer(session, sampleParams.getInstrument());
-                if (offer == null) {
-                    throw new Exception(String.format("The instrument '%s' is not valid", sampleParams.getInstrument()));
-                }
 
-                O2GLoginRules loginRules = session.getLoginRules();
-                if (loginRules == null) {
-                    throw new Exception("Cannot get login rules");
-                }
-                O2GTradingSettingsProvider tradingSettingsProvider = loginRules.getTradingSettingsProvider();
-                int iBaseUnitSize = tradingSettingsProvider.getBaseUnitSize(sampleParams.getInstrument(), account);
-                int iAmount = iBaseUnitSize * sampleParams.getLots();
-                int iCondDistEntryLimit = tradingSettingsProvider.getCondDistEntryLimit(sampleParams.getInstrument());
-                int iCondDistEntryStop = tradingSettingsProvider.getCondDistEntryStop(sampleParams.getInstrument());
-
-                double rate = (sampleParams.isStop() && sampleParams.getBuySell().equals("B")) ||
-                        (!sampleParams.isStop() && sampleParams.getBuySell().equals("S"))
-                        ? offer.getAsk() + offer.getAsk() * 0.01
-                        : offer.getAsk() - offer.getAsk() * 0.01;
-                String sOrderType = getEntryOrderType(offer.getBid(), offer.getAsk(), rate, sampleParams.getBuySell(), offer.getPointSize(), iCondDistEntryLimit, iCondDistEntryStop);
-                O2GRequest request = createEntryOrderRequest(session, offer.getOfferID(), sampleParams.getAccountID(), iAmount, rate, sampleParams.getBuySell(), sOrderType, sampleParams.getExpireDate());
-                if (request == null) {
-                    throw new Exception("Cannot create request; probably some arguments are missing or incorrect");
-                }
-                responseListener.setRequestID(request.getRequestId());
-                session.sendRequest(request);
                 if (responseListener.waitEvents()) {
                     System.out.println("Done!");
                 } else {

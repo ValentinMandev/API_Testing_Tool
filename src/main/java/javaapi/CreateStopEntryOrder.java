@@ -43,8 +43,19 @@ public class CreateStopEntryOrder {
     private final Order order;
     private final String symbol;
     private final List<String> reports;
-    private final PrintStream out;
-    private final List<String> result;
+    private static String outputFile = "output/javaapi/execution_report_stop_entry_order.txt";
+    private static FileOutputStream outputStream;
+
+    static {
+        try {
+            outputStream = new FileOutputStream(outputFile);
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static PrintStream out = new PrintStream(outputStream);
+    private static List<String> result = new ArrayList<>();
 
 
     public CreateStopEntryOrder(String[] aArgs) throws FileNotFoundException {
@@ -55,10 +66,6 @@ public class CreateStopEntryOrder {
         order = getOrder(Arrays.stream(aArgs).skip(4).toArray(String[]::new));
         symbol = aArgs[4];
         reports = new ArrayList<>();
-        String outputFile = "output/javaapi/execution_report_stop_entry_order.txt";
-        FileOutputStream outputStream = new FileOutputStream(outputFile);
-        out = new PrintStream(outputStream);
-        result = new ArrayList<>();
     }
 
     private boolean doResult(final MessageTestHandler aMessageTestHandler) {
@@ -102,6 +109,7 @@ public class CreateStopEntryOrder {
         }
 
         result.forEach(out::println);
+        result.clear();
 
         mFxcmGateway.logout();
         return aMessageTestHandler.isSuccess();
@@ -128,8 +136,10 @@ public class CreateStopEntryOrder {
     }
 
     private static void runTest(String[] aArgs) throws FileNotFoundException {
+        result.add(aArgs[4]);
         CreateStopEntryOrder createEntryOrder = new CreateStopEntryOrder(aArgs);
         createEntryOrder.testCreateEntryOrder(false);
+        result.add("\n");
     }
 
     public static boolean safeEquals(String aString1, String aString2) {
@@ -300,7 +310,11 @@ public class CreateStopEntryOrder {
             return;
         }
 
-        runTest(aArgs);
+        String[] instruments = aArgs[4].split(", ");
+        for (String instr : instruments) {
+            aArgs[4] = instr;
+            runTest(aArgs);
+        }
     }
 
     public static void main(String[] aArgs) throws FileNotFoundException {

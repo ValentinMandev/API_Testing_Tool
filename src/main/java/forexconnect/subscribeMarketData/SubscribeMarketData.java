@@ -1,7 +1,7 @@
 package forexconnect.subscribeMarketData;
 
 import com.fxcore2.*;
-import common.LoginParams;
+import forexconnect.common.LoginParams;
 
 public class SubscribeMarketData {
     
@@ -24,40 +24,46 @@ public class SubscribeMarketData {
             session.subscribeSessionStatus(statusListener);
             statusListener.reset();
             session.login(loginParams.getLogin(), loginParams.getPassword(), loginParams.getURL(), loginParams.getConnection());
+
             if (statusListener.waitEvents() && statusListener.isConnected()) {
                 ResponseListener responseListener = new ResponseListener(session);
-                responseListener.setInstrument(sampleParams.getInstrument());
-                session.subscribeResponse(responseListener);
 
-                O2GLoginRules loginRules = session.getLoginRules();
-                if (loginRules == null) {
-                    throw new Exception("Cannot get login rules");
-                }
+                String[] instruments = sampleParams.getInstrument().split(", ");
+                for (String instr : instruments) {
+                    responseListener.setInstrument(instr);
+                    session.subscribeResponse(responseListener);
 
-                O2GResponse response;
-                if (loginRules.isTableLoadedByDefault(O2GTableType.OFFERS)) {
-                    response = loginRules.getTableRefreshResponse(O2GTableType.OFFERS);
-                    if (response != null) {
-                        responseListener.printOffers(session, response, sampleParams.getInstrument());
+                    O2GLoginRules loginRules = session.getLoginRules();
+                    if (loginRules == null) {
+                        throw new Exception("Cannot get login rules");
                     }
-                } else {
-                    O2GRequestFactory requestFactory = session.getRequestFactory();
-                    if (requestFactory != null) {
-                        O2GRequest offersRequest = requestFactory.createRefreshTableRequest(O2GTableType.OFFERS);
-                        responseListener.setRequestID(offersRequest.getRequestId());
-                        session.sendRequest(offersRequest);
-                        if (!responseListener.waitEvents()) {
-                            throw new Exception("Response waiting timeout expired");
-                        }
-                        response = responseListener.getResponse();
+
+                    O2GResponse response;
+                    if (loginRules.isTableLoadedByDefault(O2GTableType.OFFERS)) {
+                        response = loginRules.getTableRefreshResponse(O2GTableType.OFFERS);
                         if (response != null) {
-                            responseListener.printOffers(session, response, sampleParams.getInstrument());
+                            responseListener.printOffers(session, response, instr);
+                        }
+                    } else {
+                        O2GRequestFactory requestFactory = session.getRequestFactory();
+                        if (requestFactory != null) {
+                            O2GRequest offersRequest = requestFactory.createRefreshTableRequest(O2GTableType.OFFERS);
+                            responseListener.setRequestID(offersRequest.getRequestId());
+                            session.sendRequest(offersRequest);
+                            if (!responseListener.waitEvents()) {
+                                throw new Exception("Response waiting timeout expired");
+                            }
+                            response = responseListener.getResponse();
+                            if (response != null) {
+                                responseListener.printOffers(session, response, instr);
+                            }
                         }
                     }
+
+                    // Do nothing 10 seconds, let offers print
+                    Thread.sleep(10000);
                 }
 
-                // Do nothing 10 seconds, let offers print
-                Thread.sleep(30000);
                 System.out.println("Done!");
 
                 session.unsubscribeResponse(responseListener);

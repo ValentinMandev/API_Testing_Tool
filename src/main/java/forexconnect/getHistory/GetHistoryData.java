@@ -24,7 +24,7 @@ import java.util.*;
 import com.fxcore2.*;
 import com.candleworks.pricehistorymgr.*;
 import com.candleworks.quotesmgr.*;
-import common.LoginParams;
+import forexconnect.common.LoginParams;
 
 
 public class GetHistoryData {
@@ -96,8 +96,13 @@ public class GetHistoryData {
                     ResponseListener responseListener = new ResponseListener();
                     communicator.addListener(responseListener);
 
-                    getHistoryPrices(communicator, sampleParams.getInstrument(), sampleParams.getTimeframe(),
-                        sampleParams.getDateFrom(), sampleParams.getDateTo(), sampleParams.getQuotesCount(), responseListener);
+                    String[] instruments = sampleParams.getInstrument().split(", ");
+                    for (String instr : instruments) {
+                        result.add(instr + ":");
+                        getHistoryPrices(communicator, instr, sampleParams.getTimeframe(),
+                                sampleParams.getDateFrom(), sampleParams.getDateTo(), sampleParams.getQuotesCount(), responseListener);
+                        Thread.sleep(1000);
+                    }
                     System.out.println("Done!");
 
                     communicator.removeListener(responseListener);
@@ -159,6 +164,7 @@ public class GetHistoryData {
         if (response != null) {
             printPrices(communicator, response);
         }
+
     }
 
     /**
@@ -226,16 +232,16 @@ public class GetHistoryData {
      */
     private static void checkObligatoryParams(LoginParams loginParams, SampleParams sampleParams) throws Exception {
         if (loginParams.getLogin().isEmpty()) {
-            throw new Exception(common.LoginParams.LOGIN_NOT_SPECIFIED);
+            throw new Exception(LoginParams.LOGIN_NOT_SPECIFIED);
         }
         if (loginParams.getPassword().isEmpty()) {
-            throw new Exception(common.LoginParams.PASSWORD_NOT_SPECIFIED);
+            throw new Exception(LoginParams.PASSWORD_NOT_SPECIFIED);
         }
         if (loginParams.getURL().isEmpty()) {
-            throw new Exception(common.LoginParams.URL_NOT_SPECIFIED);
+            throw new Exception(LoginParams.URL_NOT_SPECIFIED);
         }
         if (loginParams.getConnection().isEmpty()) {
-            throw new Exception(common.LoginParams.CONNECTION_NOT_SPECIFIED);
+            throw new Exception(LoginParams.CONNECTION_NOT_SPECIFIED);
         }
         if (sampleParams.getInstrument().isEmpty()) {
             throw new Exception(SampleParams.INSTRUMENT_NOT_SPECIFIED);

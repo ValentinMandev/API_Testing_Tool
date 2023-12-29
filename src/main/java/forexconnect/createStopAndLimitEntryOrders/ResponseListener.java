@@ -31,9 +31,10 @@ public class ResponseListener implements IO2GResponseListener {
         this.out = new PrintStream(outputStream);
     }
 
-    public void setRequestID(String requestID) {
+    public void setRequestID(String requestID, String instrument) {
         mResponse = null;
         mRequestID = requestID;
+        out.println(instrument + ":");
     }
 
     public boolean waitEvents() throws Exception {
