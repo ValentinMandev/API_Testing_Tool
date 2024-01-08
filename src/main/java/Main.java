@@ -1,3 +1,5 @@
+import fixapi.FixApi;
+
 import java.io.FileNotFoundException;
 
 public class Main {
@@ -23,7 +25,9 @@ public class Main {
 
 //        forexconnect.Run.main(username, password, connection, instruments, dateFrom, dateTo, timeframe);
 //        javaapi.Run.main(username, password, connection, instruments, dateFrom, dateTo, timeframe);
-        fixapi.FIXTradingTester.main(new String[]{"quickfix.cfg", "quickfixMD.cfg"});
 
+        FixApi fixApi = new FixApi(username, password, instruments, senderCompID, socketConnectHost, socketConnectPort,
+                senderCompIDMD, socketConnectHostMD, socketConnectPortMD, targetSubID);
+        fixApi.run();
     }
 }
