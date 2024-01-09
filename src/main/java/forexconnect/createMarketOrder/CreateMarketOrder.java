@@ -19,6 +19,7 @@ public class CreateMarketOrder {
             SampleParams sampleParams = new SampleParams(args);
             printSampleParams(sProcName, loginParams, sampleParams);
             checkObligatoryParams(loginParams, sampleParams);
+            String filename = args[7];
 
             session = O2GTransport.createSession();
             SessionStatusListener statusListener = new SessionStatusListener(session, loginParams.getSessionID(), loginParams.getPin());
@@ -27,7 +28,7 @@ public class CreateMarketOrder {
             session.login(loginParams.getLogin(), loginParams.getPassword(),
                     loginParams.getURL(), loginParams.getConnection());
             if (statusListener.waitEvents() && statusListener.isConnected()) {
-                ResponseListener responseListener = new ResponseListener(session);
+                ResponseListener responseListener = new ResponseListener(session, filename);
                 session.subscribeResponse(responseListener);
 
                 String[] instruments = sampleParams.getInstrument().split(", ");

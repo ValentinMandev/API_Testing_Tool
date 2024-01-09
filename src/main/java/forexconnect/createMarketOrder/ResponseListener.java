@@ -19,13 +19,13 @@ public class ResponseListener implements IO2GResponseListener {
     private final PrintStream out;
 
     // ctor
-    public ResponseListener(O2GSession session) throws FileNotFoundException {
+    public ResponseListener(O2GSession session, String filename) throws FileNotFoundException {
         mSession = session;
         mRequestID = "";
         mResponse = null;
         mSemaphore = new Semaphore(0);
         mOrderMonitor = null;
-        String outputFile = "output/forexconnect/execution_report_market_order.txt";
+        String outputFile = "output/forexconnect/execution_report_market_order_" + filename + ".txt";
         FileOutputStream outputStream = new FileOutputStream(outputFile);
         out = new PrintStream(outputStream);
     }

@@ -23,9 +23,13 @@ public class Main {
 
     public static void main(String[] args) throws FileNotFoundException {
 
-//        forexconnect.Run.main(username, password, connection, instruments, dateFrom, dateTo, timeframe);
-//        javaapi.Run.main(username, password, connection, instruments, dateFrom, dateTo, timeframe);
+        // RUN FOREXCONNECT TEST
+        forexconnect.Run.main(username, password, connection, instruments, dateFrom, dateTo, timeframe);
 
+        // RUN JAVA API TEST
+        javaapi.Run.main(username, password, connection, instruments, dateFrom, dateTo, timeframe);
+
+        // RUN FIX API TEST
         FixApi fixApi = new FixApi(username, password, instruments, senderCompID, socketConnectHost, socketConnectPort,
                 senderCompIDMD, socketConnectHostMD, socketConnectPortMD, targetSubID);
         fixApi.run();

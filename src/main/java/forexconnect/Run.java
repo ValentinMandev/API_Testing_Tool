@@ -12,7 +12,8 @@ public class Run {
 
         SubscribeMarketData.run(new String[]{username, password, "https://fxcorporate.com/Hosts.jsp", connection, instruments});
 
-        CreateMarketOrder.run(new String[]{username, password, "https://fxcorporate.com/Hosts.jsp", connection, instruments, "B", "1"});
+        CreateMarketOrder.run(new String[]{username, password, "https://fxcorporate.com/Hosts.jsp", connection, instruments, "B", "1", "open_position"});
+        CreateMarketOrder.run(new String[]{username, password, "https://fxcorporate.com/Hosts.jsp", connection, instruments, "S", "1", "close_position"});
 
         // Stop entry:
         CreateEntryOrder.run(new String[]{username, password, "https://fxcorporate.com/Hosts.jsp", connection, instruments, "S", "1", "stop"});

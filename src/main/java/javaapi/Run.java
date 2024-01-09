@@ -12,7 +12,8 @@ public class Run {
 
         HistData.run(new String[]{username, password, connection,"https://fxcorporate.com/Hosts.jsp", instruments, timeframe, dateFrom, dateTo});
         SubscribeMarketData.run(new String[]{username, password, connection, "https://fxcorporate.com/Hosts.jsp", instruments});
-        CreateMarketOrder.run(new String[]{username, password, connection, "https://fxcorporate.com/Hosts.jsp", instruments, "1000", "SELL", "GTC"});
+        CreateMarketOrder.run(new String[]{username, password, connection, "https://fxcorporate.com/Hosts.jsp", instruments, "1000", "SELL", "GTC", "open_position"});
+        CreateMarketOrder.run(new String[]{username, password, connection, "https://fxcorporate.com/Hosts.jsp", instruments, "1000", "BUY", "GTC", "close_position"});
         CreateStopEntryOrder.run(new String[]{username, password, connection, "https://fxcorporate.com/Hosts.jsp", instruments, "1000", "BUY", "GTC"});
         CreateLimitEntryOrder.run(new String[]{username, password, connection, "https://fxcorporate.com/Hosts.jsp", instruments, "1000", "SELL", "GTC"});
 
