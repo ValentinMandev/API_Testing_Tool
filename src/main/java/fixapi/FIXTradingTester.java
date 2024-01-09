@@ -33,7 +33,7 @@ public class FIXTradingTester {
 
     public static void main(String[] args) {
 
-        if (args.length >= 1) {
+        if (args.length >= 2) {
             String config1 = args[0];
             FileInputStream fileInputStream = null;
 
@@ -52,11 +52,11 @@ public class FIXTradingTester {
                 SocketInitiator tradingInitiator = new SocketInitiator(tradingApp, storeFactory, settings, logFactory, messageFactory);
                 tradingInitiator.start();
                 Thread.sleep(5000);
-                runExample(tradingApp);
+                runExample(tradingApp, args[args.length - 1]);
 
                 tradingInitiator.stop(true);
 
-                if (args.length == 2) {
+                if (args.length == 3) {
                     String config2 = args[1];
 
                     fileInputStream = new FileInputStream(config2);
@@ -73,7 +73,7 @@ public class FIXTradingTester {
                     mdInitiator.start();
                     Thread.sleep(5000);
 
-                    runExampleMD(mdApp);
+                    runExampleMD(mdApp, args[args.length - 1]);
 
                     mdInitiator.stop(true);
                 }
@@ -123,24 +123,28 @@ public class FIXTradingTester {
         return new String[]{config.get("SenderCompID"), config.get("TargetSubID")};
     }
 
-    public static void runExample(MyApp application) {
+    public static void runExample(MyApp application, String instruments) {
         try {
             String accountNumber = application.getAccts().toArray()[0].toString().split("=")[1];
 
-            application.sendMarketOrder(new Account(accountNumber), new Side('2'), "US30");
-            Thread.sleep(5000);
-            application.sendMarketOrder(new Account(accountNumber), new Side('1'), "US30");
-            Thread.sleep(5000);
+            String[] instrumentArray = instruments.split(", ");
 
-            Double rate = marketData.stream()
-                    .filter(d -> d.get(55).get(0).equals("GBP/USD"))
-                    .map(d -> Double.parseDouble(d.get(270).get(0)))
-                    .collect(Collectors.toList())
-                    .get(0);
+            for (String instrument : instrumentArray) {
+                application.sendMarketOrder(new Account(accountNumber), new Side('2'), instrument);
+                Thread.sleep(5000);
+                application.sendMarketOrder(new Account(accountNumber), new Side('1'), instrument);
+                Thread.sleep(5000);
 
-            application.sendEntryOrder(new Account(accountNumber), new Side('2'), "GBP/USD", new OrdType('2'), rate + rate * 0.01);
-            application.sendEntryOrder(new Account(accountNumber), new Side('1'), "GBP/USD", new OrdType('3'), rate + rate * 0.01);
-            Thread.sleep(5000);
+                Double rate = marketData.stream()
+                        .filter(d -> d.get(55).get(0).equals(instrument))
+                        .map(d -> Double.parseDouble(d.get(270).get(0)))
+                        .collect(Collectors.toList())
+                        .get(0);
+
+                application.sendEntryOrder(new Account(accountNumber), new Side('2'), instrument, new OrdType('2'), rate + rate * 0.01);
+                application.sendEntryOrder(new Account(accountNumber), new Side('1'), instrument, new OrdType('3'), rate + rate * 0.01);
+                Thread.sleep(5000);
+            }
 
 //            application.sendOrdersRequest();
 //            Thread.sleep(5000);
@@ -150,12 +154,12 @@ public class FIXTradingTester {
         }
     }
 
-    public static void runExampleMD(MyApp application) {
+    public static void runExampleMD(MyApp application, String instruments) {
         try {
             application.sendMarketDataRequest('2');
             Thread.sleep(2000);
             marketData.clear();
-            application.sendMarketDataRequest('1', List.of("EUR/USD", "USD/JPY"));
+            application.sendMarketDataRequest('1', List.of(instruments.split(", ")));
             Thread.sleep(12000);
 
             marketData.forEach(snapshot -> out.printf("%s: Date and time:%s Bid:%s Ask:%s\n",

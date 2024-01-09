@@ -67,7 +67,7 @@ public class FixApi {
 
     public void run() {
         createCfgFiles();
-        fixapi.FIXTradingTester.main(new String[]{cfgFile, cfgFileMD});
+        fixapi.FIXTradingTester.main(new String[]{cfgFile, cfgFileMD, instruments});
     }
 
 
