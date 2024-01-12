@@ -4,17 +4,17 @@ import java.io.FileNotFoundException;
 
 public class Main {
 
-    final static String username = "ValioDemo";
-    final static String password = "1234";
-    final static String connection = "Demo";
+    final static String username = "";
+    final static String password = "";
+    final static String connection = "DemoOrReal";
     final static String instruments = "EUR/USD, XAU/USD, NAS100";
-    final static String senderCompID = "valiodemo_client1";
-    final static String socketConnectHost = "fixdemo.fxcorporate.com";
-    final static String socketConnectPort = "8043";
-    final static String senderCompIDMD = "MD_valiodemo_client1";
-    final static String socketConnectHostMD = "fixdemo.fxcorporate.com";
-    final static String socketConnectPortMD = "9043";
-    final static String targetSubID = "EUDEMO";
+    final static String senderCompID = "";
+    final static String socketConnectHost = "";
+    final static String socketConnectPort = "";
+    final static String senderCompIDMD = "";
+    final static String socketConnectHostMD = "";
+    final static String socketConnectPortMD = "";
+    final static String targetSubID = "";
 
     final static String timeframe = "D1";
     final static String dateFrom = "20231203 00:00:00";
