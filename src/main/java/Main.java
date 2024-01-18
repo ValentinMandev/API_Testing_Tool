@@ -6,7 +6,8 @@ public class Main {
 
     final static String username = "";
     final static String password = "";
-    final static String connection = "DemoOrReal";
+    final static String connection = "";
+    final static String url = "https://fxcorporate.com/Hosts.jsp";
     final static String instruments = "EUR/USD, XAU/USD, NAS100";
     final static String senderCompID = "";
     final static String socketConnectHost = "";
@@ -24,10 +25,10 @@ public class Main {
     public static void main(String[] args) throws FileNotFoundException {
 
         // RUN FOREXCONNECT TEST
-        forexconnect.Run.main(username, password, connection, instruments, dateFrom, dateTo, timeframe);
+        forexconnect.Run.main(username, password, url, connection, instruments, dateFrom, dateTo, timeframe);
 
         // RUN JAVA API TEST
-        javaapi.Run.main(username, password, connection, instruments, dateFrom, dateTo, timeframe);
+        javaapi.Run.main(username, password, url, connection, instruments, dateFrom, dateTo, timeframe);
 
         // RUN FIX API TEST
         FixApi fixApi = new FixApi(username, password, instruments, senderCompID, socketConnectHost, socketConnectPort,
